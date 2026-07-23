@@ -1,91 +1,94 @@
-﻿---
+---
 name: zhuque-detect
-description: "Detect AI-generated text/images via Tencent Zhuque web. Invoke when user asks to check/detect whether text or images are AI-generated, or mentions Zhuque detection."
+description: "通过腾讯朱雀网页版检测文本或图片是否为 AI 生成。当用户要求检测 AI 生成内容、提到朱雀检测时触发。"
 ---
 
-# Zhuque AI Detection (Tencent)
+# 朱雀 AI 检测 (Tencent)
 
-Use browser automation to detect AI-generated text and images via Tencent Zhuque (腾讯朱雀) web interface at `https://matrix.tencent.com/ai-detect/ai_gen_txt` (text) and `https://matrix.tencent.com/ai-detect/ai_gen` (image/video).
+通过浏览器自动化调用腾讯朱雀 (腾讯朱雀) 网页版检测文本和图片是否由 AI 生成。
 
-## Supported Platforms
+文本检测地址: https://matrix.tencent.com/ai-detect/ai_gen_txt
+图片/视频检测地址: https://matrix.tencent.com/ai-detect/ai_gen
 
-This skill works on **Trae** and **Tencent WorkBuddy** (both use the same MCP browser tools under `integrated_browser` server).
+## 支持平台
 
-## Workflow
+本技能兼容 **Trae** 和 **腾讯 WorkBuddy** (均使用 integrated_browser MCP 服务)。
 
-### Text Detection
+## 检测流程
 
-1. **Navigate** to `https://matrix.tencent.com/ai-detect/ai_gen_txt`
-2. **Dismiss overlay**: Press `Escape` to close any notification popups (e.g., 重要声明)
-3. **Clear existing content**: Click the 清空 button
-4. **Input text**: Locate the textbox (role=textbox, placeholder contains 请输入需要检测的文本) and type the user text using `browser_type` with `clear: true`
-5. **Submit**: Click 立即检测 button
-6. **Wait for result**: Wait for 检测中 text to disappear (use `browser_wait_for` with `textGone: 检测中`)
-7. **Extract result**: Take a snapshot and read the result card (`.card-right` or `.rst` element)
-8. **Parse verdict**:
-   - `el-alert--error` class + 未发现明显的人工创作特征 = **AI-generated**
-   - `el-alert--success` class + 未发现明显的AI生成特征 = **Human-written**
-   - `el-alert--warning` class = **Uncertain**
-   - Text segment colors: `txt-segmentType-danger` (AI), `txt-segmentType-warning` (uncertain), `txt-segmentType-success` (human)
-9. **Unlock browser** when done
+### 文本检测
 
-### Image Detection
+1. **打开页面**: 导航到 https://matrix.tencent.com/ai-detect/ai_gen_txt
+2. **关闭弹窗**: 按 Escape 关闭通知弹窗 (如"重要声明")
+3. **清空内容**: 点击"清空"按钮
+4. **输入文本**: 定位文本框 (role=textbox, placeholder 包含"请输入需要检测的文本"), 使用 rowser_type 输入文本, 设置 clear: true
+5. **提交检测**: 点击"立即检测"按钮
+6. **等待结果**: 等待"检测中"文字消失 (使用 rowser_wait_for, 设置 	extGone: 检测中)
+7. **提取结果**: 截取快照, 读取结果卡片 (.card-right 或 .rst 元素)
+8. **解析判定**:
+   - l-alert--error 类 + "未发现明显的人工创作特征" = **AI 生成**
+   - l-alert--success 类 + "未发现明显的AI生成特征" = **人工创作**
+   - l-alert--warning 类 = **不确定**
+   - 文本分段颜色: 	xt-segmentType-danger (AI), 	xt-segmentType-warning (不确定), 	xt-segmentType-success (人工)
+9. **解锁浏览器**
 
-1. Navigate to `https://matrix.tencent.com/ai-detect/ai_gen`
-2. Click 图片/视频 tab if on text page
-3. Upload image via file input or paste
-4. Click 立即检测 and wait for result
-5. Parse the AI generation probability from result
+### 图片/视频检测
 
-## Key DOM Selectors
+1. 导航到 https://matrix.tencent.com/ai-detect/ai_gen
+2. 如果在文本页面, 点击"图片/视频"选项卡
+3. 通过文件输入或粘贴上传图片
+4. 点击"立即检测"并等待结果
+5. 解析 AI 生成概率
 
-| Element | Selector |
-|---------|----------|
-| Text input | `role=textbox` or `.txt-segment-box` parent area |
-| Detect button | Button containing 立即检测 |
-| Clear button | Button containing 清空 |
-| Result card | `.card-right .el-card__body` or `.rst` |
-| Verdict alert | `.el-alert--error` (AI) / `.el-alert--success` (human) / `.el-alert--warning` (uncertain) |
-| Segment highlights | `.txt-segmentType-danger` / `.txt-segmentType-warning` / `.txt-segmentType-success` |
-| Remaining count | Text in detect button: 今日剩余N次 |
-| Upload button | Button containing 上传 |
+## DOM 选择器
 
-## Result Interpretation
+| 元素 | 选择器 |
+|------|--------|
+| 文本输入框 | ole=textbox 或 .txt-segment-box 父区域 |
+| 检测按钮 | 包含"立即检测"的按钮 |
+| 清空按钮 | 包含"清空"的按钮 |
+| 结果卡片 | .card-right .el-card__body 或 .rst |
+| 判定提示 | .el-alert--error (AI) / .el-alert--success (人工) / .el-alert--warning (不确定) |
+| 分段高亮 | .txt-segmentType-danger / .txt-segmentType-warning / .txt-segmentType-success |
+| 剩余次数 | 检测按钮文本中的"今日剩余N次" |
+| 上传按钮 | 包含"上传"的按钮 |
 
-| Verdict Text | Meaning |
-|-------------|----------|
-| 未发现明显的人工创作特征 | **AI-generated** (alert--error, red) |
-| 未发现明显的AI生成特征 | **Human-written** (alert--success, green) |
-| Warning-level result | **Uncertain** (alert--warning, yellow) |
+## 结果判定对照
 
-## Constraints
+| 朱雀提示 | 含义 |
+|---------|------|
+| 未发现明显的人工创作特征 | **AI 生成** (alert--error, 红色) |
+| 未发现明显的AI生成特征 | **人工创作** (alert--success, 绿色) |
+| 警告级结果 | **不确定** (alert--warning, 黄色) |
 
-- **Text minimum**: 200 characters
-- **Daily limit**: Free users get ~5 detections/day (shown in button as 今日剩余N次)
-- **No login required** for basic detection
-- **Overlay popup**: Always dismiss with Escape before interacting
-- **Textbox discovery**: After clicking 清空, the textbox appears as `role=textbox` in snapshot. Before clearing, it may be hidden as a generic div.
+## 限制条件
 
-## Error Handling
+- **文本最少字数**: 200 字
+- **每日免费次数**: 约 5 次 (按钮显示"今日剩余N次")
+- **无需登录** 即可使用基础检测
+- **弹窗遮挡**: 操作前务必按 Escape 关闭
+- **文本框发现**: 点击"清空"后, 文本框会以 ole=textbox 出现在快照中。清空前可能隐藏为普通 div
 
-- If 检测中 does not disappear within 30s, take a screenshot to diagnose
-- If overlay blocks clicks, press Escape then retry
-- If 今日剩余0次, inform user the daily limit is reached
+## 错误处理
 
-## Output Format
+- "检测中" 30 秒未消失, 截图诊断
+- 弹窗遮挡点击, 按 Escape 后重试
+- "今日剩余0次", 提示用户已达每日上限
 
-Present results to user as:
+## 输出格式
 
-```
+向用户展示检测结果:
+
+`
 朱雀AI检测结果：
 - 判定：[AI生成 / 人工创作 / 不确定]
 - 检测类型：文本 / 图片
 - 分段详情：[各段颜色标注含义]
 - 剩余次数：N次
-```
+`
 
-## Notes
+## 备注
 
-- The web version does NOT return numeric confidence scores,
-- For numeric scores (confidence, labels_ratio), the CLI tool zhuque is needed but currently blocked by Tencent TDC fingerprint validation (errorCode 51)
-- Model update date is shown on page (e.g., 模型更新时间：2026-07-21)
+- 网页版不返回数值型置信度, 仅返回定性判定
+- 如需数值 (confidence, labels_ratio), 需使用 CLI 工具 zhuque, 但目前被腾讯 TDC 指纹验证拦截 (errorCode 51)
+- 页面显示模型更新日期 (如"模型更新时间：2026-07-21")
